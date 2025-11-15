@@ -1,0 +1,55 @@
+from paddleocr import PaddleOCR
+import os
+import argparse
+from typing import List, Dict
+from json import dumps
+from utils import *
+
+ocr = PaddleOCR(
+    use_doc_orientation_classify=False,
+    use_doc_unwarping=False,
+    use_textline_orientation=False)
+
+def process_ocr(image_paths: List[str]) -> Dict[str, str]:
+    """Xử lý OCR cho nhiều ảnh và trả về kết quả."""
+    results = ocr.predict(input=image_paths)
+    ocr_results = {}
+    for result in results:
+        ocr_results[result["input_path"]] = str(post_process(result))
+    return ocr_results
+
+
+def ocr_and_save(input_folder: str, output_filepath: str = "output.json") -> Dict[str, str]:
+    """Thực hiện OCR trên tất cả ảnh trong thư mục và lưu kết quả vào file JSON."""
+    files = os.listdir(input_folder)
+    image_paths = [
+        os.path.join(input_folder, filename) 
+        for filename in files 
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg'))
+    ]
+    ocr_results = process_ocr(image_paths)
+    save_output(ocr_results, output_filepath)
+    return ocr_results
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Thực hiện OCR trên các ảnh trong thư mục và lưu kết quả vào JSON"
+    )
+    parser.add_argument(
+        "input_folder",
+        type=str,
+        help="Đường dẫn đến thư mục chứa ảnh đầu vào"
+    )
+    parser.add_argument(
+        "output_file",
+        type=str,
+        nargs='?',
+        default="output.json",
+        help="Đường dẫn đến file JSON đầu ra (mặc định: output.json)"
+    )
+    
+    args = parser.parse_args()
+    
+    ocr_results = ocr_and_save(args.input_folder, args.output_file)
+    print(dumps(ocr_results, indent=4)) 
