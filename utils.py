@@ -19,7 +19,9 @@ def post_process(texts):
         # print(pre(k))
         key = pre(k)
         text = pre(texts[ind])
-        if key in text and abs(len(text) - len(key)) < 10:
+        if abs(len(text) - len(key)) >= 10:
+            continue
+        if key in text or is_equivalent(key, text):
             # print(texts[ind+1])
             out[k] = str(texts[ind+1])
             k = next(iterater, None)
@@ -34,3 +36,13 @@ def post_process(texts):
 def save_output(out, filename="output.json"):
     with open(filename, "w") as f:
         dump(out, f)
+def similarity_ratio(s1: str, s2: str):
+    if len(s1) != len(s2):
+        return 0.0
+
+    matches = sum(1 for a, b in zip(s1, s2) if a == b)
+    return matches / len(s1)
+
+
+def is_equivalent(s1: str, s2: str, threshold=0.6):
+    return similarity_ratio(s1, s2) >= threshold
