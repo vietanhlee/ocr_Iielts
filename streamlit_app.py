@@ -3,6 +3,7 @@ import os
 from PIL import Image
 from typing import Dict
 import ast
+from ui import inject_css, render_header
 
 def parse_result_string(result_str: str) -> Dict:
     """Chuyển đổi string kết quả thành dictionary."""
@@ -38,6 +39,8 @@ def load_paddleocr(
     return PaddleOCR(
         text_detection_model_name=text_detection_model_name,
         text_recognition_model_name=text_recognition_model_name,
+        text_detection_model_dir=text_detection_model_name,
+        text_recognition_model_dir=text_recognition_model_name,
         text_recognition_batch_size=text_recognition_batch_size,
         use_doc_orientation_classify=use_doc_orientation_classify,
         use_doc_unwarping=use_doc_unwarping,
@@ -54,7 +57,9 @@ def process_with_easyocr(image_paths):
     reader = load_easyocr()
     ocr_results = {}
     for image_path in image_paths:
-        result = reader.readtext(image_path)
+        result = reader.readtext(image_path, batch_size= 16,
+                         blocklist= '~`\'!@#$%^&*_+-={}[]|;:"<>,?\\',
+                         low_text= 0.3, min_size= 10)
         texts = [res[1] for res in result]
         ocr_results[image_path] = str(post_process(texts))
     return ocr_results
@@ -77,197 +82,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
-st.markdown("""
-<style>
-    /* Main header */
-    .main-header {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 10px;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    .main-header h1 {
-        color: white !important;
-        margin: 0;
-        font-size: 2.5rem;
-    }
-    .main-header p {
-        color: rgba(255, 255, 255, 0.95) !important;
-        margin: 0.5rem 0 0 0;
-        font-size: 1.1rem;
-    }
-    
-    /* Metrics */
-    .stMetric {
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-    }
-    .stMetric label {
-        color: #495057 !important;
-        font-weight: 600;
-    }
-    .stMetric [data-testid="stMetricValue"] {
-        color: #0066cc !important;
-        font-size: 1.2rem;
-        font-weight: 600;
-    }
-    
-    /* Result cards */
-    .result-card {
-        background: #ffffff;
-        padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin: 1rem 0;
-        border: 1px solid #dee2e6;
-    }
-    .result-card h3 {
-        color: #212529 !important;
-        margin-bottom: 1rem;
-    }
-    
-    /* Text colors */
-    h1, h2, h3, h4, h5, h6 {
-        color: #212529 !important;
-    }
-    p {
-        color: #495057 !important;
-    }
-    span {
-        color: #495057 !important;
-    }
-    div {
-        color: #495057 !important;
-    }
-    label {
-        color: #495057 !important;
-    }
-    
-    /* Main content area */
-    .main .block-container {
-        background-color: #ffffff;
-    }
-    .main h1, .main h2, .main h3, .main h4 {
-        color: #212529 !important;
-    }
-    .main p, .main span, .main div, .main li {
-        color: #495057 !important;
-    }
-    
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] button {
-        color: #495057 !important;
-    }
-    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
-        color: #212529 !important;
-    }
-    .stTabs [data-baseweb="tab-panel"] * {
-        color: #495057 !important;
-    }
-    .stTabs [data-baseweb="tab-panel"] h3,
-    .stTabs [data-baseweb="tab-panel"] h4 {
-        color: #212529 !important;
-    }
-    
-    /* File uploader */
-    .stFileUploader label {
-        color: #212529 !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-    }
-    .stFileUploader small {
-        color: #6c757d !important;
-    }
-    
-    /* Welcome section */
-    .welcome-text {
-        text-align: center;
-        padding: 3rem 0;
-    }
-    .welcome-text h2 {
-        color: #212529 !important;
-        margin-bottom: 1rem;
-    }
-    .welcome-text p {
-        font-size: 1.2rem;
-        color: #6c757d !important;
-    }
-    
-    /* Info boxes */
-    .stInfo, .stSuccess, .stWarning, .stError {
-        color: #212529 !important;
-    }
-    
-    /* Markdown text */
-    [data-testid="stMarkdownContainer"] p,
-    [data-testid="stMarkdownContainer"] li,
-    [data-testid="stMarkdownContainer"] span,
-    [data-testid="stMarkdownContainer"] div {
-        color: #495057 !important;
-    }
-    [data-testid="stMarkdownContainer"] h1,
-    [data-testid="stMarkdownContainer"] h2,
-    [data-testid="stMarkdownContainer"] h3,
-    [data-testid="stMarkdownContainer"] h4 {
-        color: #212529 !important;
-    }
-    
-    /* Expander */
-    .streamlit-expanderHeader {
-        color: #212529 !important;
-    }
-    .streamlit-expanderContent * {
-        color: #495057 !important;
-    }
-    
-    /* Status container */
-    [data-testid="stStatusWidget"] * {
-        color: #495057 !important;
-    }
-    
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background-color: #f8f9fa;
-    }
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3,
-    section[data-testid="stSidebar"] h4 {
-        color: #212529 !important;
-    }
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] li,
-    section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] div {
-        color: #495057 !important;
-    }
-    section[data-testid="stSidebar"] label {
-        color: #212529 !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {
-        color: #495057 !important;
-    }
-    
-    /* Radio buttons in sidebar */
-    section[data-testid="stSidebar"] .stRadio label {
-        color: #212529 !important;
-    }
-    section[data-testid="stSidebar"] .stRadio p {
-        color: #495057 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Custom CSS (moved to separate file)
+inject_css("assets/styles.css")
 
-# Header
-st.markdown("""
-<div class="main-header">
-    <h1>🎓 OCR IELTS Certificate Reader</h1>
-    <p>Trích xuất thông tin tự động từ chứng chỉ IELTS</p>
-</div>
-""", unsafe_allow_html=True)
+# Header (rendered via helper)
+render_header()
 
 # Sidebar
 with st.sidebar:
