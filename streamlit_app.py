@@ -39,8 +39,8 @@ def load_paddleocr(
     return PaddleOCR(
         text_detection_model_name=text_detection_model_name,
         text_recognition_model_name=text_recognition_model_name,
-        text_detection_model_dir=text_detection_model_name,
-        text_recognition_model_dir=text_recognition_model_name,
+        # text_detection_model_dir=text_detection_model_name,
+        # text_recognition_model_dir=text_recognition_model_name,
         text_recognition_batch_size=text_recognition_batch_size,
         use_doc_orientation_classify=use_doc_orientation_classify,
         use_doc_unwarping=use_doc_unwarping,
