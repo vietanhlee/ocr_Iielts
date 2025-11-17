@@ -12,7 +12,7 @@ class Paddle():
         use_doc_orientation_classify = False,
         use_doc_unwarping = False,
         use_textline_orientation = False,
-        text_det_unclip_ratio = 1.5,
+        text_det_unclip_ratio = 1.2,
         textline_orientation_batch_size = 8,
         text_recognition_batch_size = 8,
         text_det_box_thresh = 0.7,
