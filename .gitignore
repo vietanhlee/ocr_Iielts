@@ -1,11 +1,9 @@
 easyocr.ipynb
 __pycache__/
 main.ipynb
-Easy.py 
 ocr_easyocr.py
 easyy.py
 output_poly_label.jpg
-Paddle.py
 testeasy.py
 PP-OCRv4_server_det
 PP-OCRv5_server_det
